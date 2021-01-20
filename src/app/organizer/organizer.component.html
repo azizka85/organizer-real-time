@@ -4,8 +4,8 @@
     <hr>
   </header>  
   <main>
-    <ul *ngIf="tasks.length; else noTasks">
-      <li class="task" *ngFor="let task of tasks; let i = index">
+    <ul *ngIf="(tasks | async)?.length; else noTasks">
+      <li class="task" *ngFor="let task of tasks | async; let i = index">
         <span>
           <strong>{{ i + 1 }}</strong>
           {{ task.title }}
