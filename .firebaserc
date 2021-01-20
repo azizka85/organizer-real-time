@@ -1,0 +1,11 @@
+{
+  "targets": {
+    "organizer-real-time": {
+      "hosting": {
+        "organizer-real-time": [
+          "organizer-real-time"
+        ]
+      }
+    }
+  }
+}

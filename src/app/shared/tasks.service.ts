@@ -1,6 +1,6 @@
-import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { Observable } from "rxjs";
+import { AngularFireDatabase } from "@angular/fire/database";
+import { from, Observable } from "rxjs";
 import { map } from 'rxjs/operators';
 
 export interface Task {
@@ -9,41 +9,39 @@ export interface Task {
   date?: string
 }
 
-interface CreateResponse {
-  name: string
-}
-
 @Injectable({
   providedIn: 'root'
 })
 export class TasksService {
-  static url = 'https://organizer-real-time-default-rtdb.firebaseio.com/tasks';
-
-  constructor(private http: HttpClient) { }
+  constructor(private db: AngularFireDatabase) { }
 
   load(date: moment.Moment): Observable<Task[]>{
-    return this.http
-      .get<Task[]>(`${TasksService.url}/${date.format('DD-MM-YYYY')}.json`)
-      .pipe(map(tasks => {
-        if(!tasks) 
-          return [];
-
-        return Object.keys(tasks).map(key => ({...tasks[key], id: key}));
-      }))
+    return this.db
+      .list<Task>(`tasks/${date.format('DD-MM-YYYY')}`)
+      .snapshotChanges()
+      .pipe(
+        map(changes => changes
+          .map(action => {
+            const task = action.payload.val();
+            task.id = action.payload.key;
+            return task;
+          })
+        )
+      );
   }
 
   create(task: Task): Observable<Task> {
-    return this.http
-      .post<CreateResponse>(`${TasksService.url}/${task.date}.json`, task)
+    return from(this.db
+      .list<Task>(`tasks/${task.date}`)
+      .push(task))
       .pipe(
-        map(res => {
-          return {...task, id: res.name};
-        })
+        map(ref => task)
       );
   }
 
   remove(task: Task): Observable<void> {
-    return this.http
-      .delete<void>(`${TasksService.url}/${task.date}/${task.id}.json`);
+    return from(this.db
+      .list<Task>(`tasks/${task.date}`)
+      .remove(task.id));
   }
 }

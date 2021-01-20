@@ -9,9 +9,7 @@
         "@schematics/angular:component": {
           "style": "scss"
         },
-        "@schematics/angular:application": {
-          
-        }
+        "@schematics/angular:application": {}
       },
       "root": "",
       "sourceRoot": "src",
@@ -123,6 +121,10 @@
               "devServerTarget": "organizer-real-time:serve:production"
             }
           }
+        },
+        "deploy": {
+          "builder": "@angular/fire:deploy",
+          "options": {}
         }
       }
     }
