@@ -1,7 +1,7 @@
-import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { Observable } from "rxjs";
-import { map } from 'rxjs/operators';
+import { AngularFirestore } from '@angular/fire/firestore';
+import { from, Observable } from 'rxjs';
+import { map } from "rxjs/operators";
 
 export interface Task {
   id?: string,
@@ -9,41 +9,34 @@ export interface Task {
   date?: string
 }
 
-interface CreateResponse {
-  name: string
-}
-
 @Injectable({
   providedIn: 'root'
 })
-export class TasksService {
-  static url = 'https://organizer-real-time-default-rtdb.firebaseio.com/tasks';
-
-  constructor(private http: HttpClient) { }
+export class TasksService {  
+  constructor(private firestore: AngularFirestore) { }
 
   load(date: moment.Moment): Observable<Task[]>{
-    return this.http
-      .get<Task[]>(`${TasksService.url}/${date.format('DD-MM-YYYY')}.json`)
-      .pipe(map(tasks => {
-        if(!tasks) 
-          return [];
-
-        return Object.keys(tasks).map(key => ({...tasks[key], id: key}));
-      }))
+    return this.firestore
+      .doc(`tasks/${date.format('DD-MM-YYYY')}`)
+      .collection<Task>('items')
+      .valueChanges();
   }
 
   create(task: Task): Observable<Task> {
-    return this.http
-      .post<CreateResponse>(`${TasksService.url}/${task.date}.json`, task)
+    task.id = this.firestore.createId();
+    return from(this.firestore
+      .collection(`tasks/${task.date}/items`)
+      .doc(task.id)
+      .set(task))
       .pipe(
-        map(res => {
-          return {...task, id: res.name};
-        })
+        map(() => task)
       );
   }
 
   remove(task: Task): Observable<void> {
-    return this.http
-      .delete<void>(`${TasksService.url}/${task.date}/${task.id}.json`);
+    return from(this.firestore
+      .collection(`tasks/${task.date}/items`)
+      .doc(task.id)
+      .delete());
   }
 }
