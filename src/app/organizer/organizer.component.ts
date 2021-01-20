@@ -40,7 +40,7 @@ export class OrganizerComponent implements OnInit {
     this.tasksService
       .create(task)
       .subscribe(task => {
-        console.log(`Task ${task.id} created`);
+        this.tasks.push(task);
         this.form.reset();
       }, err => {
         console.error(err);
@@ -48,11 +48,10 @@ export class OrganizerComponent implements OnInit {
   }
 
   remove(task: Task) {
-    console.log(`Removing task ${task.id}`);
     this.tasksService
       .remove(task)
       .subscribe(() => {
-        console.log(`Task ${task.id} deleted`);
+        this.tasks = this.tasks.filter(t => t.id !== task.id);
       }, err => { 
         console.error(err)
       });
