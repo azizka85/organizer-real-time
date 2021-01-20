@@ -30,12 +30,12 @@ export class TasksService {
       );
   }
 
-  create(task: Task): Observable<Task> {
+  create(task: Task): Observable<void> {
     return from(this.db
       .list<Task>(`tasks/${task.date}`)
       .push(task))
       .pipe(
-        map(ref => task)
+        map(ref => {})
       );
   }
 
